@@ -14,7 +14,8 @@
   "include": [
     "shared/**/*.ts",
     "01-svg-frames/**/*.ts",
-    "02-vscode-test-electron/**/*.ts"
+    "02-vscode-test-electron/**/*.ts",
+    "03-puppeteer/**/*.ts"
   ],
   "references": [
     {
@@ -22,6 +23,9 @@
     },
     {
       "path": "02-vscode-test-electron/tsconfig.json"
+    },
+    {
+      "path": "03-puppeteer/tsconfig.json"
     }
   ]
 }

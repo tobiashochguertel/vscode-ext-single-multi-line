@@ -10,6 +10,7 @@ demos/
 ├── shared/src/                        # Shared TypeScript utilities (transformer, scenarios)
 ├── 01-svg-frames/                     # Pure SVG rendering (deterministic, headless)
 ├── 02-vscode-test-electron/           # Real VS Code + macOS screencapture
+├── 03-puppeteer/                      # Headless Chromium via Puppeteer
 ├── tsconfig.json                      # Shared TypeScript config for IDE
 ├── package.json                       # Shared bun dependencies
 └── README.md                          # This file
@@ -21,6 +22,7 @@ demos/
 | --- | ------------------------------------------------- | ---------------------------------- | --------- | -------- | -------- |
 | 01  | [SVG Frames](01-svg-frames/)                      | Render code as SVG, convert to GIF | Simulated | Any      |          |
 | 02  | [VS Code Test Electron](02-vscode-test-electron/) | Real VS Code + `screencapture`     | Real      | macOS    |          |
+| 03  | [Puppeteer](03-puppeteer/)                        | Headless Chromium HTML rendering   | High      | Any      | ✅       |
 
 ## Quick Start
 
@@ -38,9 +40,14 @@ npx tsc -p demos/02-vscode-test-electron/tsconfig.json
 bun demos/02-vscode-test-electron/src/launch.ts
 ./demos/02-vscode-test-electron/scripts/assemble-gif.sh
 
+# Solution 03: Puppeteer (headless Chromium, high fidelity)
+bun demos/03-puppeteer/src/capture.ts
+./demos/03-puppeteer/scripts/assemble-gif.sh
+
 # Or via Taskfile
 task demo:01:generate    # Solution 01
 task demo:02:generate    # Solution 02
+task demo:03:generate    # Solution 03
 ```
 
 ## Shared Components
