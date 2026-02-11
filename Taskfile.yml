@@ -1,0 +1,167 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  EXTENSION_NAME: single-line-multi-line
+  PUBLISHER: TobiasHochguertel
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+
+  # ── Development ──────────────────────────────────────────────
+
+  install:
+    desc: Install dependencies
+    cmds:
+      - npm install
+    sources:
+      - package.json
+
+  compile:
+    desc: Compile the extension with esbuild
+    cmds:
+      - npm run compile
+
+  watch:
+    desc: Watch for changes and recompile
+    cmds:
+      - npm run watch
+
+  lint:
+    desc: Run ESLint on source files
+    cmds:
+      - npm run lint
+
+  # ── Testing ──────────────────────────────────────────────────
+
+  test:
+    desc: Run all tests
+    cmds:
+      - npm test
+
+  test:unit:
+    desc: Run unit tests
+    cmds:
+      - npm run test:unit
+
+  test:unit:watch:
+    desc: Run unit tests in watch mode
+    cmds:
+      - npm run test:unit:watch
+
+  # ── Packaging ────────────────────────────────────────────────
+
+  package:
+    desc: Package the extension into a .vsix file
+    deps: [compile]
+    cmds:
+      - npx @vscode/vsce package
+    generates:
+      - "*.vsix"
+
+  # ── Publishing ───────────────────────────────────────────────
+  #
+  # Token setup (sourced from ~/dotfiles/shell_zsh/tokens.zsh):
+  #   VS Code Marketplace:  export VSCE_PAT="$AZURE_DEV_OPS_TOKEN"
+  #   Open VSX Registry:    export OVSX_PAT="..."  (already exported)
+  #
+
+  publish:vscode:
+    desc: Publish to VS Code Marketplace
+    deps: [package]
+    cmds:
+      - npx @vscode/vsce publish
+    preconditions:
+      - sh: test -n "$VSCE_PAT"
+        msg: 'VSCE_PAT environment variable must be set (export VSCE_PAT="$AZURE_DEV_OPS_TOKEN")'
+
+  publish:openvsx:
+    desc: Publish to Open VSX Registry
+    deps: [package]
+    cmds:
+      - npx ovsx publish *.vsix -p $OVSX_PAT
+    preconditions:
+      - sh: test -n "$OVSX_PAT"
+        msg: "OVSX_PAT environment variable must be set"
+
+  publish:all:
+    desc: Publish to both VS Code Marketplace and Open VSX
+    deps: [publish:vscode, publish:openvsx]
+
+  # ── Version bumping ─────────────────────────────────────────
+
+  version:bump:
+    desc: "Bump version (usage: task version:bump -- <major|minor|patch>)"
+    cmds:
+      - npm version {{.CLI_ARGS}} --no-git-tag-version
+      - git add package.json package-lock.json
+      - 'git commit -m "chore: bump version to $(node -p \"require(''./package.json'').version\")"'
+
+  version:patch:
+    desc: Bump patch version
+    cmds:
+      - task version:bump -- patch
+
+  version:minor:
+    desc: Bump minor version
+    cmds:
+      - task version:bump -- minor
+
+  version:major:
+    desc: Bump major version
+    cmds:
+      - task version:bump -- major
+
+  # ── Release workflow ─────────────────────────────────────────
+
+  release:
+    desc: "Create a new release (usage: task release -- <major|minor|patch>)"
+    cmds:
+      - task: lint
+      - task: test
+      - task: version:bump
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+      - git tag v$(node -p "require('./package.json').version")
+      - git push origin main --tags
+      - task: publish:all
+
+  # ── Maintenance ──────────────────────────────────────────────
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf out *.vsix
+
+  sync-upstream:
+    desc: Fetch and merge changes from the upstream (original) repository
+    cmds:
+      - git fetch upstream
+      - git merge upstream/main --no-edit
+    status:
+      - git remote get-url upstream
+
+  outdated:
+    desc: Check for outdated dependencies
+    cmds:
+      - npm outdated || true
+
+  security:audit:
+    desc: Run security audit
+    cmds:
+      - npm audit
+
+  ci:
+    desc: Run CI checks (lint, compile, test)
+    cmds:
+      - task: lint
+      - task: compile
+      - task: test
+
+  debug:
+    desc: Launch extension in debug mode
+    cmds:
+      - code --extensionDevelopmentPath=$(pwd)

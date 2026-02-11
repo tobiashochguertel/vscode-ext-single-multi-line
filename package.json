@@ -1,12 +1,25 @@
 {
 	"name": "single-line-multi-line",
 	"displayName": "Single-line, Multi-line",
-	"description": "Toggle Objects, Arrays, & Assignments Between Single & Multi-line",
+	"description": "Toggle Objects, Arrays, & Assignments Between Single & Multi-line. Compact multiple multiline blocks into one-per-line.",
 	"icon": "images/logo.png",
-	"version": "0.1.1",
-	"publisher": "SuperKXT",
+	"version": "0.2.0",
+	"publisher": "TobiasHochguertel",
+	"author": {
+		"name": "Tobias Hochgürtel",
+		"url": "https://github.com/tobiashochguertel"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/tobiashochguertel/vscode-ext-single-multi-line",
+	"bugs": {
+		"url": "https://github.com/tobiashochguertel/vscode-ext-single-multi-line/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tobiashochguertel/vscode-ext-single-multi-line.git"
+	},
 	"engines": {
-		"vscode": "^1.35.0"
+		"vscode": "^1.85.0"
 	},
 	"categories": [
 		"Formatters",
@@ -17,17 +30,28 @@
 		"multi",
 		"line",
 		"split",
-		"lines"
+		"lines",
+		"compact",
+		"join",
+		"collapse",
+		"objects",
+		"arrays",
+		"formatter"
 	],
 	"activationEvents": [
-		"onCommand:extension.singleMultiLine"
+		"onCommand:extension.singleMultiLine",
+		"onCommand:extension.compactBlocks"
 	],
-	"main": "./out/extension.js",
+	"main": "./out/main.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "extension.singleMultiLine",
-				"title": "Single-line, Multi-line"
+				"title": "Single-line, Multi-line: Toggle"
+			},
+			{
+				"command": "extension.compactBlocks",
+				"title": "Single-line, Multi-line: Compact Blocks"
 			}
 		],
 		"keybindings": [
@@ -37,7 +61,7 @@
 				"mac": "ctrl+cmd+s",
 				"when": "editorTextFocus && !editorReadonly",
 				"args": {
-					"isCommandOnNewLine": false
+					"isCommaOnNewLine": false
 				}
 			},
 			{
@@ -48,25 +72,36 @@
 				"args": {
 					"isCommaOnNewLine": true
 				}
+			},
+			{
+				"command": "extension.compactBlocks",
+				"key": "ctrl+alt+b",
+				"mac": "ctrl+cmd+b",
+				"when": "editorTextFocus && !editorReadonly"
 			}
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+		"vscode:prepublish": "npm run esbuild-base -- --pure:console.log --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"compile": "npm run esbuild",
+		"watch": "npm run esbuild-watch",
+		"lint": "eslint src --ext ts",
+		"test:unit": "vitest run --config tests/vitest.config.ts",
+		"test:unit:watch": "vitest --config tests/vitest.config.ts",
+		"test": "npm run test:unit"
 	},
 	"devDependencies": {
-		"@types/mocha": "^2.2.42",
-		"@types/node": "^10.12.21",
-		"tslint": "^5.12.1",
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/SuperKXT/vscode-ext-single-multi-line.git"
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^20.19.33",
+		"@types/vscode": "^1.85.0",
+		"@typescript-eslint/eslint-plugin": "^8.55.0",
+		"@typescript-eslint/parser": "^8.55.0",
+		"esbuild": "^0.27.3",
+		"eslint": "^10.0.0",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18"
 	}
 }
