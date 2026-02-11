@@ -185,6 +185,13 @@ tasks:
     cmds:
       - bun install
 
+  vscode-test:cleanup:
+    desc: "Clean VS Code Test artifacts"
+    preconditions:
+      - test -d .vscode-test
+    cmds:
+      - rm -rf .vscode-test || true
+
   demo:cleanup:
     desc: "Clean output directories, compiled files, and temporary files of a given solution"
     vars:
@@ -193,6 +200,7 @@ tasks:
       - test -d {{.SOLUTION_DIR}}
     cmds:
       - echo "Cleaning {{.SOLUTION_DIR}}"
+      - task: vscode-test:cleanup
       - rm -rf {{.SOLUTION_DIR}}/out || true
       - rm -rf {{.SOLUTION_DIR}}/output || true
 
