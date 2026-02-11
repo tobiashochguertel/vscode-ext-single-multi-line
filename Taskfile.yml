@@ -203,6 +203,7 @@ tasks:
       - task: vscode-test:cleanup
       - rm -rf {{.SOLUTION_DIR}}/out || true
       - rm -rf {{.SOLUTION_DIR}}/output || true
+      - rm -rf {{.SOLUTION_DIR}}/scripts/find-window-id || true
 
   demo:clean:
     desc: Remove all demo output artifacts
@@ -251,6 +252,14 @@ tasks:
           CLI_ARGS: "{{.CLI_ARGS}}"
 
   # ── Solution 02: vscode-test-electron (original) ──────────────
+
+  demo:02:debug:
+    desc: "Solution 02: Launch VS Code and record screenshots (debug mode)"
+    # deps: [demo:02:compile]
+    cmds:
+      # - bun {{.DEMO_02_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}}
+      - |
+        "/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/.vscode-test/vscode-darwin-arm64-1.109.2/Visual Studio Code.app/Contents/Resources/app/bin/code" --verbose --log debug --extensions-dir=/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/.vscode-test/extensions --user-data-dir=/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/.vscode-test/user-data /Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/demos/fixtures --extensionDevelopmentPath=/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line --extensionTestsPath=/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/demos/02-vscode-test-electron/out/src/run-scenarios --wait --disable-gpu --skip-welcome --skip-release-notes --disable-workspace-trust
 
   demo:02:clean:
     desc: "Clean output directories, compiled files, and temporary files of solution 02"
