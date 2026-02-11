@@ -208,8 +208,16 @@ tasks:
     cmds:
       - ./demos/02-vscode-test-electron/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
 
+  demo:02:update-goldens:
+    desc: "Solution 02: Run scenarios and write/update golden files"
+    deps: [demo:02:compile]
+    env:
+      UPDATE_GOLDENS: "1"
+    cmds:
+      - bun demos/02-vscode-test-electron/src/launch.ts {{.CLI_ARGS | default "all"}}
+
   demo:02:generate:
-    desc: "Solution 02: Compile + record + assemble GIFs"
+    desc: "Solution 02: Compile + record + assemble GIFs (verifies goldens)"
     cmds:
       - task: demo:02:record
         vars:

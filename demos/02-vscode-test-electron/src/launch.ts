@@ -16,6 +16,7 @@
  */
 
 import * as path from "path";
+import * as fs from "fs";
 import { spawn } from "child_process";
 import {
   downloadAndUnzipVSCode,
@@ -75,6 +76,13 @@ async function main(): Promise<void> {
     child.on("error", reject);
     child.on("close", (code) => resolve(code ?? 1));
   });
+
+  // Print verification report if it exists
+  const reportPath = path.resolve(__dirname, "..", "output", "verification-report.txt");
+  if (fs.existsSync(reportPath)) {
+    console.log("");
+    console.log(fs.readFileSync(reportPath, "utf-8"));
+  }
 
   if (exitCode !== 0) {
     console.error(`VS Code exited with code ${exitCode}`);

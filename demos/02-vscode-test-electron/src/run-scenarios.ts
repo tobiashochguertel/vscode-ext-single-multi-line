@@ -16,9 +16,16 @@ import * as fs from "fs";
 const SOLUTION_DIR = path.resolve(__dirname, "..", "..");
 const SCREENSHOT_DIR = path.join(SOLUTION_DIR, "output", "screenshots");
 const FIXTURES_DIR = path.resolve(SOLUTION_DIR, "..", "fixtures");
+const GOLDENS_DIR = path.join(SOLUTION_DIR, "goldens");
+
+/** When true, write actual editor content as new golden files instead of verifying. */
+const UPDATE_GOLDENS = process.env.UPDATE_GOLDENS === "1" || process.env.UPDATE_GOLDENS === "true";
 
 let screenshotCounter = 0;
 let currentScenario = "default";
+let verificationErrors: string[] = [];
+let verificationPasses: string[] = [];
+const REPORT_PATH = path.join(SOLUTION_DIR, "output", "verification-report.txt");
 
 function ensureDir(dir: string): void {
   if (!fs.existsSync(dir)) {
@@ -74,6 +81,59 @@ function selectAll(editor: vscode.TextEditor): void {
   editor.selection = new vscode.Selection(0, 0, lastLine, lastChar);
 }
 
+/**
+ * Get the full text content of the active editor.
+ */
+function getEditorContent(editor: vscode.TextEditor): string {
+  return editor.document.getText();
+}
+
+/**
+ * Verify the editor content against a golden file.
+ *
+ * - If UPDATE_GOLDENS is set, writes the actual content as the new golden.
+ * - Otherwise, compares actual content against the golden and logs pass/fail.
+ */
+function verifyGolden(editor: vscode.TextEditor, stepLabel: string): void {
+  const scenarioGoldensDir = path.join(GOLDENS_DIR, currentScenario);
+  ensureDir(scenarioGoldensDir);
+
+  const goldenPath = path.join(scenarioGoldensDir, `${stepLabel}.txt`);
+  const actual = getEditorContent(editor);
+
+  if (UPDATE_GOLDENS) {
+    fs.writeFileSync(goldenPath, actual, "utf-8");
+    console.log(`  🖊  Updated golden: ${stepLabel}.txt`);
+    return;
+  }
+
+  if (!fs.existsSync(goldenPath)) {
+    const msg = `  ⚠ Golden missing: ${stepLabel}.txt — run with UPDATE_GOLDENS=1 to create`;
+    console.warn(msg);
+    verificationErrors.push(`[${currentScenario}] ${msg.trim()}`);
+    return;
+  }
+
+  const expected = fs.readFileSync(goldenPath, "utf-8");
+  if (actual === expected) {
+    console.log(`  ✅ Verified: ${stepLabel}`);
+    verificationPasses.push(`[${currentScenario}] ${stepLabel}`);
+  } else {
+    const msg = `Golden mismatch: ${stepLabel}`;
+    console.error(`  ❌ ${msg}`);
+    console.error(`     Expected (${expected.length} chars):\n${indent(expected)}`);
+    console.error(`     Actual   (${actual.length} chars):\n${indent(actual)}`);
+    verificationErrors.push(`[${currentScenario}] ${msg}\n  Expected:\n${indent(expected)}\n  Actual:\n${indent(actual)}`);
+  }
+}
+
+function indent(text: string): string {
+  return text
+    .split("\n")
+    .map((l) => "       | " + l)
+    .join("\n");
+}
+
 // ── Scenarios ────────────────────────────────────────────────
 
 async function scenarioToggle(): Promise<void> {
@@ -83,6 +143,7 @@ async function scenarioToggle(): Promise<void> {
 
   const editor = await openFixture("toggle-multiline.json");
   await sleep(500);
+  verifyGolden(editor, "01-single-line-before");
   captureScreenshot("01-single-line-before");
 
   selectAll(editor);
@@ -91,6 +152,7 @@ async function scenarioToggle(): Promise<void> {
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
+  verifyGolden(editor, "03-multi-line-after");
   captureScreenshot("03-multi-line-after");
 
   selectAll(editor);
@@ -99,6 +161,7 @@ async function scenarioToggle(): Promise<void> {
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
+  verifyGolden(editor, "05-single-line-restored");
   captureScreenshot("05-single-line-restored");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
@@ -112,6 +175,7 @@ async function scenarioCompactBlocks(): Promise<void> {
 
   const editor = await openFixture("compact-blocks.json");
   await sleep(500);
+  verifyGolden(editor, "01-multiline-blocks");
   captureScreenshot("01-multiline-blocks");
 
   selectAll(editor);
@@ -120,6 +184,7 @@ async function scenarioCompactBlocks(): Promise<void> {
 
   await vscode.commands.executeCommand("extension.compactBlocks");
   await sleep(1000);
+  verifyGolden(editor, "03-compacted");
   captureScreenshot("03-compacted");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
@@ -133,6 +198,7 @@ async function scenarioToggleFromMulti(): Promise<void> {
 
   const editor = await openFixture("toggle-singleline.json");
   await sleep(500);
+  verifyGolden(editor, "01-multi-line-before");
   captureScreenshot("01-multi-line-before");
 
   selectAll(editor);
@@ -141,6 +207,7 @@ async function scenarioToggleFromMulti(): Promise<void> {
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
+  verifyGolden(editor, "03-single-line-after");
   captureScreenshot("03-single-line-after");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
@@ -180,6 +247,49 @@ export async function run(): Promise<void> {
   // Reset font size
   await vscode.commands.executeCommand("editor.action.fontZoomReset");
   await sleep(300);
+
+  // ── Verification Summary ──────────────────────────────────
+  const reportLines: string[] = [];
+  reportLines.push(`Verification Report — ${new Date().toISOString()}`);
+  reportLines.push(`Mode: ${UPDATE_GOLDENS ? "UPDATE" : "VERIFY"}`);
+  reportLines.push("");
+
+  if (UPDATE_GOLDENS) {
+    reportLines.push("Golden files updated.");
+    console.log("");
+    console.log("═══ Golden files updated ═══");
+  } else if (verificationErrors.length > 0) {
+    reportLines.push(`RESULT: ❌ FAILED — ${verificationErrors.length} error(s), ${verificationPasses.length} passed`);
+    reportLines.push("");
+    reportLines.push("Passed:");
+    for (const p of verificationPasses) {
+      reportLines.push(`  ✅ ${p}`);
+    }
+    reportLines.push("");
+    reportLines.push("Failed:");
+    for (const err of verificationErrors) {
+      reportLines.push(`  ❌ ${err}`);
+    }
+    console.error("");
+    console.error("═══ ❌ Verification FAILED ═══");
+    for (const err of verificationErrors) {
+      console.error(`  • ${err}`);
+    }
+    console.error(`${verificationErrors.length} verification error(s)`);
+  } else {
+    reportLines.push(`RESULT: ✅ ALL PASSED — ${verificationPasses.length} verification(s)`);
+    reportLines.push("");
+    for (const p of verificationPasses) {
+      reportLines.push(`  ✅ ${p}`);
+    }
+    console.log("");
+    console.log("═══ ✅ All verifications passed ═══");
+  }
+
+  // Write report file so it's visible even when CLI doesn't relay stdout
+  ensureDir(path.dirname(REPORT_PATH));
+  fs.writeFileSync(REPORT_PATH, reportLines.join("\n") + "\n", "utf-8");
+  console.log(`Report: ${REPORT_PATH}`);
 
   console.log("");
   console.log("═══ Recording Complete ═══");
