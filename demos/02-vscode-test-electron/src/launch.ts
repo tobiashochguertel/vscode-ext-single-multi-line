@@ -52,6 +52,7 @@ async function main(): Promise<void> {
     fixturesPath,
     `--extensionDevelopmentPath=${extensionDevelopmentPath}`,
     `--extensionTestsPath=${extensionTestsPath}`,
+    "--wait",
     "--disable-gpu",
     "--skip-welcome",
     "--skip-release-notes",
