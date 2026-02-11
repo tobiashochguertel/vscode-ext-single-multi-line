@@ -20,9 +20,9 @@ TEMP_DIR="$SOLUTION_DIR/output/.tmp-gif"
 
 # GIF settings
 FRAME_DELAY=150  # Centiseconds between frames (150 = 1.5s per frame)
-WIDTH=800        # Output width — crop/scale real screenshots
-LOSSY=80         # gifsicle lossy compression
-COLORS=128       # Max colors in palette
+WIDTH=1440       # Output width — half of Retina (2880) for crisp 1:2 downscale
+LOSSY=30         # gifsicle lossy compression (lower = better quality)
+COLORS=256       # Max colors in palette (GIF maximum)
 
 # ── Helpers ───────────────────────────────────────────────────
 
@@ -61,20 +61,22 @@ assemble_scenario() {
   echo "▶ Assembling $scenario ($png_count frames) → $output_file"
   mkdir -p "$TEMP_DIR" "$OUTPUT_DIR"
 
-  # Step 1: Create palette
+  # Step 1: Create palette (full stats_mode for best per-frame quality)
   local palette="$TEMP_DIR/palette-${scenario}.png"
   ffmpeg -y -framerate 1 -pattern_type glob -i "${input_dir}/*.png" \
-    -vf "scale=${WIDTH}:-1:flags=lanczos,palettegen=max_colors=${COLORS}:stats_mode=diff" \
+    -vf "scale=${WIDTH}:-1:flags=lanczos,palettegen=max_colors=${COLORS}:stats_mode=full" \
     "$palette" 2>/dev/null
 
   # Step 2: Generate GIF using the palette
+  #   - sierra2_4a dithering: smooth, no visible grid artifacts (unlike bayer)
+  #   - diff_mode=rectangle: only encode changed regions per frame
   local raw_gif="$TEMP_DIR/raw-${scenario}.gif"
   ffmpeg -y -framerate 1 -pattern_type glob -i "${input_dir}/*.png" \
     -i "$palette" \
-    -lavfi "scale=${WIDTH}:-1:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+    -lavfi "scale=${WIDTH}:-1:flags=lanczos [x]; [x][1:v] paletteuse=dither=sierra2_4a:diff_mode=rectangle" \
     "$raw_gif" 2>/dev/null
 
-  # Step 3: Optimize with gifsicle
+  # Step 3: Light optimization with gifsicle (preserve quality)
   gifsicle -O3 --lossy="$LOSSY" --colors "$COLORS" \
     --delay "$FRAME_DELAY" \
     --no-warnings --loop \
@@ -105,7 +107,7 @@ combine_all() {
   fi
 
   echo "▶ Combining ${#inputs[@]} scenario GIFs → $output_file"
-  gifsicle -O3 --lossy="$LOSSY" --colors "$COLORS" \
+  gifsicle -O3 --colors "$COLORS" \
     --no-warnings --merge --loop \
     "${inputs[@]}" -o "$output_file"
 
