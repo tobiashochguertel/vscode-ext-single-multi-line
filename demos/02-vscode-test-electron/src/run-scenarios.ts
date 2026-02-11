@@ -38,7 +38,51 @@ async function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Capture a screenshot of the entire screen using macOS `screencapture`.
+ * Cached macOS window ID for the VS Code Electron window.
+ * Resolved once and reused for all screenshots.
+ */
+let cachedWindowId: string | null = null;
+
+/**
+ * Find the VS Code Electron window ID using a compiled Swift helper
+ * that queries macOS CoreGraphics CGWindowListCopyWindowInfo.
+ *
+ * The VS Code test instance typically runs as "Electron".
+ */
+function findVSCodeWindowId(): string | null {
+  if (cachedWindowId !== null) {
+    return cachedWindowId;
+  }
+
+  const helperBin = path.join(SOLUTION_DIR, "scripts", "find-window-id");
+
+  // Try "Electron" first (VS Code test instance), then "Code" as fallback
+  for (const ownerName of ["Electron", "Code"]) {
+    try {
+      const result = execSync(`"${helperBin}" ${ownerName}`, {
+        timeout: 3000,
+        encoding: "utf-8",
+      }).trim();
+
+      if (result && /^\d+$/.test(result)) {
+        cachedWindowId = result;
+        console.log(`  🪟 Found window ID: ${cachedWindowId} (owner: ${ownerName})`);
+        return cachedWindowId;
+      }
+    } catch {
+      // Not found with this owner name, try next
+    }
+  }
+
+  console.warn("  ⚠ Could not find VS Code window ID — falling back to full-screen capture");
+  return null;
+}
+
+/**
+ * Capture a screenshot of the VS Code window using macOS `screencapture`.
+ *
+ * Uses `-l <windowID>` to capture only the VS Code window.
+ * Falls back to full-screen capture if the window ID cannot be determined.
  *
  * NOTE: Requires the calling application (VS Code / Windsurf / Terminal)
  * to be added to macOS System Settings → Privacy & Security → Screen Recording.
@@ -52,11 +96,18 @@ function captureScreenshot(label: string): string {
   const filepath = path.join(scenarioDir, filename);
 
   try {
-    // Capture the entire screen — most reliable approach on macOS.
-    // The -x flag suppresses the shutter sound.
-    execSync(`screencapture -x "${filepath}"`, {
-      timeout: 10000,
-    });
+    const windowId = findVSCodeWindowId();
+    if (windowId) {
+      // Capture only the VS Code window (with shadow via -o to omit shadow)
+      execSync(`screencapture -x -o -l ${windowId} "${filepath}"`, {
+        timeout: 10000,
+      });
+    } else {
+      // Fallback: capture entire screen
+      execSync(`screencapture -x "${filepath}"`, {
+        timeout: 10000,
+      });
+    }
     console.log(`  📸 ${filename}`);
   } catch (e: any) {
     console.warn(`  ⚠ Screenshot failed for ${label}: ${e.message}`);

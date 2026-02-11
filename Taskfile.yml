@@ -192,10 +192,15 @@ tasks:
           CLI_ARGS: "{{.CLI_ARGS}}"
 
   demo:02:compile:
-    desc: "Solution 02: Compile scenario runner for VS Code Electron"
+    desc: "Solution 02: Compile scenario runner + Swift helper for VS Code Electron"
     deps: [compile]
     cmds:
       - npx tsc -p demos/02-vscode-test-electron/tsconfig.json
+      - >-
+        test -f demos/02-vscode-test-electron/scripts/find-window-id &&
+        test demos/02-vscode-test-electron/scripts/find-window-id -nt demos/02-vscode-test-electron/scripts/find-window-id.swift ||
+        swiftc -O demos/02-vscode-test-electron/scripts/find-window-id.swift
+        -o demos/02-vscode-test-electron/scripts/find-window-id
 
   demo:02:record:
     desc: "Solution 02: Launch VS Code and record screenshots"

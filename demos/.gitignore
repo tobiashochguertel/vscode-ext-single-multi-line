@@ -7,6 +7,9 @@ node_modules
 # tsc compiled output for solution 02
 02-vscode-test-electron/out/
 
+# compiled Swift helper binary
+02-vscode-test-electron/scripts/find-window-id
+
 # caches
 .eslintcache
 .cache
