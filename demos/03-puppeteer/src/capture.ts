@@ -18,7 +18,7 @@
  * Output: demos/03-puppeteer/output/screenshots/<scenario>/<NNN>.png
  */
 
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
 import { mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import {
@@ -254,7 +254,7 @@ function tokenizeLine(line: string): string {
 // ── Main ─────────────────────────────────────────────────────
 
 async function captureScenario(
-  browser: puppeteer.Browser,
+  browser: Browser,
   scenario: Scenario,
 ): Promise<void> {
   console.log(`▶ Capturing scenario: ${scenario.name}`);

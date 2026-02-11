@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "noEmit": false,
     "resolveJsonModule": true,
-    "composite": true
+    "composite": true,
+    "rootDir": "."
   },
   "include": [
     "shared/**/*.ts",
