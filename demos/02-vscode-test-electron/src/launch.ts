@@ -5,6 +5,10 @@
  * Downloads VS Code (if needed), launches Extension Development Host,
  * and runs the scenario runner inside it which captures real screenshots.
  *
+ * Uses downloadAndUnzipVSCode + resolveCliArgsFromVSCodeExecutablePath
+ * to spawn the VS Code CLI wrapper (not the raw Electron binary), which
+ * properly bootstraps VS Code with extension test support.
+ *
  * Usage:
  *   bun demos/02-vscode-test-electron/src/launch.ts [scenario]
  *   bun demos/02-vscode-test-electron/src/launch.ts          # all
@@ -12,7 +16,11 @@
  */
 
 import * as path from "path";
-import { runTests } from "@vscode/test-electron";
+import { spawn } from "child_process";
+import {
+  downloadAndUnzipVSCode,
+  resolveCliArgsFromVSCodeExecutablePath,
+} from "@vscode/test-electron";
 
 async function main(): Promise<void> {
   // Extension root (two levels up from demos/02-vscode-test-electron/src/)
@@ -35,23 +43,45 @@ async function main(): Promise<void> {
   console.log(`Fixtures:  ${fixturesPath}`);
   console.log("");
 
-  try {
-    await runTests({
-      extensionDevelopmentPath,
-      extensionTestsPath,
-      launchArgs: [
-        fixturesPath,
-        "--disable-extensions",
-        "--disable-gpu",
-      ],
-      extensionTestsEnv: {
+  // Download VS Code if needed and resolve the CLI wrapper path
+  const vscodeExecutablePath = await downloadAndUnzipVSCode();
+  const [cliPath, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+
+  const args = [
+    ...cliArgs,
+    fixturesPath,
+    `--extensionDevelopmentPath=${extensionDevelopmentPath}`,
+    `--extensionTestsPath=${extensionTestsPath}`,
+    "--disable-gpu",
+    "--skip-welcome",
+    "--skip-release-notes",
+    "--disable-workspace-trust",
+  ];
+
+  console.log(`CLI: ${cliPath}`);
+  console.log(`Args: ${args.join(" ")}`);
+  console.log("");
+
+  const exitCode = await new Promise<number>((resolve, reject) => {
+    const child = spawn(cliPath, args, {
+      stdio: "inherit",
+      env: {
+        ...process.env,
         DEMO_SCENARIO: scenario,
       },
     });
-  } catch (err) {
-    console.error("Failed to run demo scenarios:", err);
-    process.exit(1);
+
+    child.on("error", reject);
+    child.on("close", (code) => resolve(code ?? 1));
+  });
+
+  if (exitCode !== 0) {
+    console.error(`VS Code exited with code ${exitCode}`);
+    process.exit(exitCode);
   }
 }
 
-main();
+main().catch((err) => {
+  console.error("Failed to run demo scenarios:", err);
+  process.exit(1);
+});

@@ -1,14 +1,15 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "rootDir": "..",
-    "composite": true
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./out",
+    "rootDir": ".",
+    "composite": true,
+    "types": [ "node" ]
   },
   "include": [
-    "src/**/*.ts",
-    "../shared/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "out",

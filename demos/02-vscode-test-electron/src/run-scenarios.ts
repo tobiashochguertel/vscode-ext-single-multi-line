@@ -89,7 +89,7 @@ async function scenarioToggle(): Promise<void> {
   await sleep(500);
   captureScreenshot("02-selected");
 
-  await vscode.commands.executeCommand("extension.singleMultiLine");
+  await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   captureScreenshot("03-multi-line-after");
 
@@ -97,7 +97,7 @@ async function scenarioToggle(): Promise<void> {
   await sleep(500);
   captureScreenshot("04-selected-again");
 
-  await vscode.commands.executeCommand("extension.singleMultiLine");
+  await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   captureScreenshot("05-single-line-restored");
 
@@ -139,7 +139,7 @@ async function scenarioToggleFromMulti(): Promise<void> {
   await sleep(500);
   captureScreenshot("02-selected");
 
-  await vscode.commands.executeCommand("extension.singleMultiLine");
+  await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   captureScreenshot("03-single-line-after");
 
