@@ -165,3 +165,30 @@ tasks:
     desc: Launch extension in debug mode
     cmds:
       - code --extensionDevelopmentPath=$(pwd)
+
+  # ── Demo GIF Recording ─────────────────────────────────────
+
+  demo:frames:
+    desc: "Generate SVG frames for demo GIFs (usage: task demo:frames [-- toggle|compact|all])"
+    cmds:
+      - node demos/generate-frames.js {{.CLI_ARGS | default "all"}}
+
+  demo:assemble:
+    desc: "Assemble SVG frames into optimized GIFs (usage: task demo:assemble [-- toggle|compact|all])"
+    cmds:
+      - ./demos/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+
+  demo:generate:
+    desc: "Generate frames and assemble GIFs in one step"
+    cmds:
+      - task: demo:frames
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+      - task: demo:assemble
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+
+  demo:clean:
+    desc: Remove demo frames and temp files
+    cmds:
+      - rm -rf demos/frames demos/.tmp-gif

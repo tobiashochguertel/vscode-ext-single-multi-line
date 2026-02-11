@@ -55,7 +55,17 @@ Compacts multiple multiline `{ }` blocks into **one block per line**, preserving
 
 ---
 
-![Screenshot](images/intro.gif "Usage Gif")
+### Toggle Demo
+
+![Toggle Demo](images/demo-toggle.gif "Toggle single-line ↔ multi-line")
+
+### Compact Blocks Demo
+
+![Compact Blocks Demo](images/demo-compact.gif "Compact multiple blocks")
+
+### Combined Overview
+
+![Overview](images/intro.gif "All features")
 
 ---
 
@@ -125,7 +135,22 @@ task publish:all      # Publish to both
 task release          # Full release: lint → test → package → publish
 task sync-upstream    # Merge upstream changes
 task version:patch    # Bump patch version
+task demo:generate    # Regenerate all demo GIFs
+task demo:frames      # Generate SVG frames only
+task demo:assemble    # Assemble frames into GIFs
+task demo:clean       # Remove generated frames
 ```
+
+### Regenerating Demo GIFs
+
+Demo GIFs are generated automatically from code — no screen recording needed:
+
+```bash
+# Prerequisites: brew install ffmpeg gifsicle librsvg
+task demo:generate
+```
+
+This runs `demos/generate-frames.js` (renders SVG frames styled like VS Code) then `demos/assemble-gif.sh` (converts to optimized GIFs via ffmpeg + gifsicle). See `demos/README.md` for details.
 
 ---
 

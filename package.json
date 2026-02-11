@@ -91,7 +91,10 @@
 		"lint": "eslint src --ext ts",
 		"test:unit": "vitest run --config tests/vitest.config.ts",
 		"test:unit:watch": "vitest --config tests/vitest.config.ts",
-		"test": "npm run test:unit"
+		"test": "npm run test:unit",
+		"demo:frames": "node demos/generate-frames.js",
+		"demo:assemble": "./demos/assemble-gif.sh",
+		"demo:generate": "npm run demo:frames && npm run demo:assemble"
 	},
 	"devDependencies": {
 		"@types/mocha": "^10.0.10",
@@ -100,7 +103,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.55.0",
 		"@typescript-eslint/parser": "^8.55.0",
 		"esbuild": "^0.27.3",
-		"eslint": "^10.0.0",
+		"eslint": "^9.0.0",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.18"
 	}

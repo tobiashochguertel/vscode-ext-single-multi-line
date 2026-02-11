@@ -2,6 +2,7 @@
 .vscode-test/**
 src/**
 tests/**
+demos/**
 out/**
 !out/main.js
 node_modules/**
