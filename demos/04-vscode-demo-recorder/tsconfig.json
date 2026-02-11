@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./out",
+    "rootDir": ".",
+    "composite": true,
+    "types": [ "node" ]
+  },
+  "include": [
+    "src/run-scenarios.ts"
+  ],
+  "exclude": [
+    "out",
+    "output",
+    "node_modules",
+    "src/cli.ts",
+    "src/commands",
+    "src/config.ts",
+    "src/schema.ts",
+    "src/logger.ts",
+    "scripts"
+  ]
+}

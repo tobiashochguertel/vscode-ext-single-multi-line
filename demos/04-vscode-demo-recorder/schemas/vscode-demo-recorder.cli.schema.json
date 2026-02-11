@@ -1,0 +1,308 @@
+{
+  "$ref": "#/definitions/vscode-demo-recorder-cli",
+  "definitions": {
+    "vscode-demo-recorder-cli": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "JSON Schema reference for IDE support"
+        },
+        "version": {
+          "type": "string",
+          "const": "1.0",
+          "default": "1.0",
+          "description": "Config schema version"
+        },
+        "paths": {
+          "type": "object",
+          "properties": {
+            "extensionRoot": {
+              "type": "string",
+              "default": ".",
+              "description": "Path to the VS Code extension root (relative to config file or absolute)"
+            },
+            "fixturesDir": {
+              "type": "string",
+              "default": "demos/fixtures",
+              "description": "Path to fixture files directory"
+            },
+            "outputDir": {
+              "type": "string",
+              "default": "demos/02-vscode-test-electron/output",
+              "description": "Path to output directory (screenshots, reports)"
+            },
+            "goldensDir": {
+              "type": "string",
+              "default": "demos/02-vscode-test-electron/goldens",
+              "description": "Path to golden files directory"
+            },
+            "gifOutputDir": {
+              "type": "string",
+              "default": "images",
+              "description": "Path to final GIF output directory"
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "vscode": {
+          "type": "object",
+          "properties": {
+            "settings": {
+              "type": "object",
+              "additionalProperties": {},
+              "default": {
+                "git.enabled": false,
+                "git.autoRepositoryDetection": false,
+                "git.openRepositoryInParentFolders": "never",
+                "chat.commandCenter.enabled": false,
+                "workbench.startupEditor": "none",
+                "workbench.tips.enabled": false,
+                "update.showReleaseNotes": false,
+                "extensions.ignoreRecommendations": true,
+                "telemetry.telemetryLevel": "off"
+              },
+              "description": "VS Code settings.json to pre-seed in the test instance"
+            },
+            "fontZoomLevel": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10,
+              "default": 3,
+              "description": "Number of font zoom-in steps for GIF readability"
+            },
+            "cliFlags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "--wait",
+                "--disable-gpu",
+                "--skip-welcome",
+                "--skip-release-notes",
+                "--disable-workspace-trust"
+              ],
+              "description": "Additional CLI flags for the VS Code test instance"
+            },
+            "wipeUserData": {
+              "type": "boolean",
+              "default": true,
+              "description": "Wipe user-data directory before each run for a clean state"
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "gif": {
+          "type": "object",
+          "properties": {
+            "frameDelay": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 150,
+              "description": "Centiseconds between frames (150 = 1.5s per frame)"
+            },
+            "width": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 1440,
+              "description": "Output GIF width in pixels"
+            },
+            "lossy": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200,
+              "default": 30,
+              "description": "gifsicle lossy compression level (0=lossless, higher=more compression)"
+            },
+            "colors": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 256,
+              "default": 256,
+              "description": "Max colors in GIF palette"
+            },
+            "dither": {
+              "type": "string",
+              "default": "sierra2_4a",
+              "description": "ffmpeg dither algorithm (sierra2_4a, bayer, floyd_steinberg, none)"
+            },
+            "statsMode": {
+              "type": "string",
+              "enum": [
+                "full",
+                "diff",
+                "single"
+              ],
+              "default": "full",
+              "description": "ffmpeg palettegen stats_mode"
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Unique scenario identifier (used as directory name)"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "open"
+                        },
+                        "fixture": {
+                          "type": "string",
+                          "description": "Fixture filename relative to fixtures directory"
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "fixture"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "selectAll"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string",
+                          "description": "VS Code command ID to execute"
+                        },
+                        "args": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "description": "Arguments to pass to the command"
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "verify"
+                        },
+                        "golden": {
+                          "type": "string",
+                          "description": "Golden file label (e.g. '01-single-line-before')"
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "golden"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "screenshot"
+                        },
+                        "label": {
+                          "type": "string",
+                          "description": "Screenshot label for filename"
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "label"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "sleep"
+                        },
+                        "ms": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Milliseconds to wait"
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "ms"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "const": "closeEditor"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "description": "Ordered list of steps to execute"
+              }
+            },
+            "required": [
+              "name",
+              "steps"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "description": "List of scenarios to record"
+        }
+      },
+      "required": [
+        "scenarios"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

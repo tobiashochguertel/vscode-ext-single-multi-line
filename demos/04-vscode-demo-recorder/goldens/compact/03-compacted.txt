@@ -1,0 +1,12 @@
+{
+  "name": "content",
+  "regexp": "*"
+},
+{
+  "name": "filename",
+  "regexp": "*"
+},
+{
+  "name": "path",
+  "regexp": "/src/**"
+}
