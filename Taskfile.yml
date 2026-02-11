@@ -265,10 +265,8 @@ tasks:
     cmds:
       - npx tsc -p {{.DEMO_02_DIR}}/tsconfig.json
       - >-
-        test -f {{.DEMO_02_DIR}}/scripts/find-window-id &&
-        test {{.DEMO_02_DIR}}/scripts/find-window-id -nt {{.DEMO_02_DIR}}/scripts/find-window-id.swift ||
-        swiftc -O {{.DEMO_02_DIR}}/scripts/find-window-id.swift
-        -o {{.DEMO_02_DIR}}/scripts/find-window-id
+        test -f {{.DEMO_02_DIR}}/scripts/find-window-id && test {{.DEMO_02_DIR}}/scripts/find-window-id -nt {{.DEMO_02_DIR}}/scripts/find-window-id.swift || swiftc -O {{.DEMO_02_DIR}}/scripts/find-window-id.swift -o {{.DEMO_02_DIR}}/scripts/find-window-id
+      - chmod +x {{.DEMO_02_DIR}}/scripts/find-window-id
 
   demo:02:record:
     desc: "Solution 02: Launch VS Code and record screenshots"
@@ -315,10 +313,8 @@ tasks:
     cmds:
       - npx tsc -p {{.DEMO_04_DIR}}/tsconfig.json
       - >-
-        test -f {{.DEMO_04_DIR}}/scripts/find-window-id &&
-        test {{.DEMO_04_DIR}}/scripts/find-window-id -nt {{.DEMO_04_DIR}}/scripts/find-window-id.swift ||
-        swiftc -O {{.DEMO_04_DIR}}/scripts/find-window-id.swift
-        -o {{.DEMO_04_DIR}}/scripts/find-window-id
+        test -f {{.DEMO_04_DIR}}/scripts/find-window-id && test {{.DEMO_04_DIR}}/scripts/find-window-id -nt {{.DEMO_04_DIR}}/scripts/find-window-id.swift || swiftc -O {{.DEMO_04_DIR}}/scripts/find-window-id.swift -o {{.DEMO_04_DIR}}/scripts/find-window-id
+      - chmod +x {{.DEMO_04_DIR}}/scripts/find-window-id
 
   demo:04:schema:
     desc: "Solution 04: Generate JSON Schema from Zod definitions"
