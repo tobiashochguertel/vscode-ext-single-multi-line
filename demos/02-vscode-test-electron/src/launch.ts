@@ -51,13 +51,16 @@ async function main(): Promise<void> {
   const args = [
     ...cliArgs,
     fixturesPath,
+    "--log", "debug", // Log level to use. Default is 'info'. Allowed values are 'critical', 'error', 'warn', 'info', 'debug', 'trace', 'off'. You can also configure the log level of an extension by passing extension id and log level in the following format: '${publisher}.${name}:${logLevel}'. For example: 'vscode.csharp:trace'.Can receive one or more such entries.
     `--extensionDevelopmentPath=${extensionDevelopmentPath}`,
     `--extensionTestsPath=${extensionTestsPath}`,
-    "--wait",
+    "--verbose", // Print verbose output (implies --wait).
+    "--wait", // Wait for the files to be closed before returning.
     "--disable-gpu",
     "--skip-welcome",
     "--skip-release-notes",
     "--disable-workspace-trust",
+    // "--user-data-dir=/Users/tobiashochgurtel/work-dev/temp-projects/compare-vscode-extension_inline-fold/vscode-ext-single-multi-line/.vscode-test/user-data", // Specifies the directory that user data is kept in. Can be used to open multiple distinct instances of Code.
   ];
 
   // Wipe user-data to ensure fresh VS Code state (no cached notifications)
