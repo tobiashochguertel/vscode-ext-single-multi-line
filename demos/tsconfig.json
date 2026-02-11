@@ -15,5 +15,13 @@
     "shared/**/*.ts",
     "01-svg-frames/**/*.ts",
     "02-vscode-test-electron/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "01-svg-frames/tsconfig.json"
+    },
+    {
+      "path": "02-vscode-test-electron/tsconfig.json"
+    }
   ]
 }
