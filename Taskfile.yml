@@ -197,7 +197,6 @@ tasks:
     vars:
       SOLUTION_DIR: '{{.SOLUTION_DIR| default ""}}'
     cmds:
-      - echo "Cleaning {{.SOLUTION_DIR}}"
       - task: vscode-test:cleanup
       - rm -rf {{.SOLUTION_DIR}}/out || true
       - rm -rf {{.SOLUTION_DIR}}/output || true
