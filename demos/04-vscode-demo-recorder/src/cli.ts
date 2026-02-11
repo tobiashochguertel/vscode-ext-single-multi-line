@@ -14,8 +14,7 @@ import { configCommand } from "./commands/config-cmd.js";
 import { schemaCommand } from "./commands/schema-cmd.js";
 import { recordCommand } from "./commands/record-cmd.js";
 import { assembleCommand } from "./commands/assemble-cmd.js";
-
-const CLI_NAME = "vscode-demo-recorder";
+import { CLI_NAME } from "./constants.js";
 
 async function main(): Promise<void> {
   await yargs(hideBin(process.argv))

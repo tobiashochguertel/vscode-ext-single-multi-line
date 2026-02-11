@@ -9,8 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import YAML from "yaml";
 import { RecorderConfigSchema, type RecorderConfig } from "./schema.js";
-
-const CLI_NAME = "vscode-demo-recorder";
+import { CLI_NAME } from "./constants.js";
 
 /**
  * Config file discovery order:

@@ -78,6 +78,12 @@ async function main(): Promise<void> {
   const solutionDir = path.resolve(__dirname, "..");
   const extensionTestsPath = path.resolve(solutionDir, "out", "src", "run-scenarios");
 
+  // Ensure out/package.json exists with "type": "commonjs" so the compiled
+  // CJS run-scenarios.js works even when the parent package.json has "type": "module"
+  const outPkgPath = path.resolve(solutionDir, "out", "package.json");
+  fs.mkdirSync(path.dirname(outPkgPath), { recursive: true });
+  fs.writeFileSync(outPkgPath, '{ "type": "commonjs" }\n', "utf-8");
+
   // Download VS Code if needed and resolve the CLI wrapper path
   const vscodeExecutablePath = await downloadAndUnzipVSCode();
   const [cliPath, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);

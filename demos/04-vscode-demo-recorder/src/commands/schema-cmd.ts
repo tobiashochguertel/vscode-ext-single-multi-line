@@ -7,12 +7,11 @@
 import type { CommandModule } from "yargs";
 import * as fs from "fs";
 import * as path from "path";
+import { z } from "zod";
 import chalk from "chalk";
 import YAML from "yaml";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { RecorderConfigSchema } from "../schema.js";
-
-const CLI_NAME = "vscode-demo-recorder";
+import { CLI_NAME } from "../constants.js";
 
 function getSchemasDir(): string {
   return path.resolve(__dirname, "..", "..", "schemas");
@@ -24,9 +23,10 @@ function getSchemaStorePath(): string | null {
 }
 
 function generateJsonSchema(): object {
-  return zodToJsonSchema(RecorderConfigSchema, {
-    name: `${CLI_NAME}-cli`,
-    $refStrategy: "none",
+  return z.toJSONSchema(RecorderConfigSchema, {
+    target: "draft-07",
+    reused: "inline",
+    unrepresentable: "any",
   });
 }
 
@@ -46,7 +46,7 @@ export const schemaCommand: CommandModule = {
       .command(
         "list",
         "List all available schemas",
-        () => {},
+        () => { },
         () => {
           const schemasDir = getSchemasDir();
           if (!fs.existsSync(schemasDir)) {
@@ -62,9 +62,9 @@ export const schemaCommand: CommandModule = {
 
           console.log(
             chalk.bold("Config Type".padEnd(16)) +
-              chalk.bold("Schema File".padEnd(48)) +
-              chalk.bold("Size".padEnd(10)) +
-              chalk.bold("Modified")
+            chalk.bold("Schema File".padEnd(48)) +
+            chalk.bold("Size".padEnd(10)) +
+            chalk.bold("Modified")
           );
           console.log("─".repeat(90));
 
@@ -76,9 +76,9 @@ export const schemaCommand: CommandModule = {
             const modified = stat.mtime.toISOString().slice(0, 10);
             console.log(
               configType.padEnd(16) +
-                file.padEnd(48) +
-                sizeKb.padEnd(10) +
-                modified
+              file.padEnd(48) +
+              sizeKb.padEnd(10) +
+              modified
             );
           }
         }

@@ -12,8 +12,7 @@ import YAML from "yaml";
 import { resolveConfigPath, loadConfig, generateDefaultConfig } from "../config.js";
 import { RecorderConfigSchema } from "../schema.js";
 import { getLogger } from "../logger.js";
-
-const CLI_NAME = "vscode-demo-recorder";
+import { CLI_NAME } from "../constants.js";
 
 function getConfigPath(argv: { config?: string }): string {
   const configPath = resolveConfigPath(argv.config);
@@ -231,7 +230,7 @@ export const configCommand: CommandModule = {
       .command(
         "validate",
         "Validate configuration against schema",
-        () => {},
+        () => { },
         (argv) => {
           const configPath = getConfigPath(argv);
           try {
@@ -248,7 +247,7 @@ export const configCommand: CommandModule = {
       .command(
         "path",
         "Print the resolved configuration file path",
-        () => {},
+        () => { },
         (argv) => {
           const configPath = resolveConfigPath(argv.config as string | undefined);
           if (configPath) {

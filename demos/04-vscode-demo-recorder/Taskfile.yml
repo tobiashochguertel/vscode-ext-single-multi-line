@@ -1,0 +1,159 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# Standalone Taskfile for vscode-demo-recorder
+# Usage: task <command>  (run from demos/04-vscode-demo-recorder/)
+version: "3"
+
+vars:
+  CLI: bun src/cli.ts
+  LAUNCH: bun src/launch.ts
+  OUT_DIR: ./out
+  OUTPUT_DIR: ./output
+  SCHEMAS_DIR: ./schemas
+
+tasks:
+  # ── Installation & Setup ──────────────────────────────────
+
+  install:
+    desc: "Install project dependencies"
+    preconditions:
+      - bun --version
+    cmds:
+      - bun install
+
+  setup:
+    desc: "Full setup: install + compile + generate schema"
+    cmds:
+      - task: install
+      - task: compile
+      - task: schema:export
+
+  # ── Build & Compile ───────────────────────────────────────
+
+  compile:
+    desc: "Compile the scenario runner (TypeScript → CommonJS)"
+    cmds:
+      - npx tsc -p tsconfig.json
+      - >-
+        test -f scripts/find-window-id &&
+        test scripts/find-window-id -nt scripts/find-window-id.swift ||
+        swiftc -O scripts/find-window-id.swift -o scripts/find-window-id
+      - chmod +x scripts/find-window-id
+
+  compile:watch:
+    desc: "Watch mode for scenario runner compilation"
+    cmds:
+      - npx tsc -p tsconfig.json --watch
+
+  # ── Schema Management ─────────────────────────────────────
+
+  schema:export:
+    desc: "Export JSON Schema from Zod definitions"
+    cmds:
+      - "{{.CLI}} schema export"
+
+  schema:show:
+    desc: "Display the CLI JSON Schema"
+    cmds:
+      - "{{.CLI}} schema show cli"
+
+  schema:validate:
+    desc: "Validate a config file against the schema"
+    cmds:
+      - "{{.CLI}} schema validate {{.CLI_ARGS | default \"../../vscode-demo-recorder.config.yaml\"}}"
+
+  # ── Configuration ─────────────────────────────────────────
+
+  config:init:
+    desc: "Create a default configuration file"
+    cmds:
+      - "{{.CLI}} config init {{.CLI_ARGS}}"
+
+  config:show:
+    desc: "Display current configuration"
+    cmds:
+      - "{{.CLI}} config show"
+
+  config:validate:
+    desc: "Validate current configuration"
+    cmds:
+      - "{{.CLI}} config validate"
+
+  # ── Recording ─────────────────────────────────────────────
+
+  record:
+    desc: "Record all scenarios (launch VS Code + capture screenshots)"
+    deps: [compile]
+    cmds:
+      - "{{.LAUNCH}} {{.CLI_ARGS | default \"all\"}}"
+
+  record:scenario:
+    desc: "Record a specific scenario"
+    deps: [compile]
+    cmds:
+      - "{{.LAUNCH}} {{.SCENARIO}}"
+    requires:
+      vars: [SCENARIO]
+
+  record:update-goldens:
+    desc: "Record and update golden files"
+    deps: [compile]
+    cmds:
+      - "{{.LAUNCH}} {{.CLI_ARGS | default \"all\"}} --update-goldens"
+
+  # ── GIF Assembly ──────────────────────────────────────────
+
+  assemble:
+    desc: "Assemble screenshots into GIFs"
+    cmds:
+      - "{{.CLI}} assemble {{.CLI_ARGS | default \"all\"}}"
+
+  # ── Full Pipeline ─────────────────────────────────────────
+
+  generate:
+    desc: "Full pipeline: compile → record → assemble"
+    cmds:
+      - task: record
+      - task: assemble
+
+  # ── Clean ─────────────────────────────────────────────────
+
+  clean:
+    desc: "Clean output directories and compiled files"
+    cmds:
+      - rm -rf {{.OUTPUT_DIR}}/screenshots {{.OUTPUT_DIR}}/verification-report.txt {{.OUTPUT_DIR}}/.runtime-config.json {{.OUTPUT_DIR}}/.tmp-gif
+      - rm -rf {{.OUT_DIR}}/src
+
+  clean:all:
+    desc: "Clean everything including node_modules and schemas"
+    cmds:
+      - task: clean
+      - rm -rf node_modules bun.lock
+
+  # ── Testing & Verification ────────────────────────────────
+
+  verify:
+    desc: "Run recording and check verification report"
+    deps: [compile]
+    cmds:
+      - "{{.LAUNCH}} {{.CLI_ARGS | default \"all\"}}"
+      - cat {{.OUTPUT_DIR}}/verification-report.txt
+
+  lint:
+    desc: "Type-check CLI source files"
+    cmds:
+      - bunx tsc --noEmit --esModuleInterop --moduleResolution node --target es2020 --module es2020 --lib es2020 --types node src/cli.ts src/config.ts src/schema.ts src/logger.ts src/launch.ts 2>&1 || true
+
+  # ── Release ───────────────────────────────────────────────
+
+  version:
+    desc: "Show current version"
+    cmds:
+      - 'bun -e "console.log(require(\"./package.json\").version)"'
+
+  prepublish:
+    desc: "Prepare for publishing: clean, install, compile, test"
+    cmds:
+      - task: clean
+      - task: install
+      - task: compile
+      - task: schema:export

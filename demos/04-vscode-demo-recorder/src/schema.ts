@@ -25,7 +25,7 @@ export const StepSelectAllSchema = z.object({
 export const StepCommandSchema = z.object({
   action: z.literal("command"),
   command: z.string().describe("VS Code command ID to execute"),
-  args: z.record(z.unknown()).optional().describe("Arguments to pass to the command"),
+  args: z.record(z.string(), z.unknown()).optional().describe("Arguments to pass to the command"),
 });
 
 export const StepVerifySchema = z.object({
@@ -90,7 +90,7 @@ export type GifSettings = z.infer<typeof GifSettingsSchema>;
 
 // ── VS Code Environment ──────────────────────────────────────
 
-export const VscodeSettingsSchema = z.record(z.unknown()).default({
+export const VscodeSettingsSchema = z.record(z.string(), z.unknown()).default({
   "git.enabled": false,
   "git.autoRepositoryDetection": false,
   "git.openRepositoryInParentFolders": "never",
@@ -126,9 +126,9 @@ export const PathsSchema = z.object({
     .describe("Path to the VS Code extension root (relative to config file or absolute)"),
   fixturesDir: z.string().default("demos/fixtures")
     .describe("Path to fixture files directory"),
-  outputDir: z.string().default("demos/02-vscode-test-electron/output")
+  outputDir: z.string().default("demos/04-vscode-demo-recorder/output")
     .describe("Path to output directory (screenshots, reports)"),
-  goldensDir: z.string().default("demos/02-vscode-test-electron/goldens")
+  goldensDir: z.string().default("demos/04-vscode-demo-recorder/goldens")
     .describe("Path to golden files directory"),
   gifOutputDir: z.string().default("images")
     .describe("Path to final GIF output directory"),
