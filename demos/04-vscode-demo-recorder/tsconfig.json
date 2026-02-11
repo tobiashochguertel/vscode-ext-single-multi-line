@@ -3,23 +3,31 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "./out",
+    "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "outDir": "out",
     "rootDir": ".",
     "composite": true,
-    "types": [ "node" ]
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "include": [
-    "src/run-scenarios.ts"
+    "src/**/*.ts",
+    "src/run-scenarios.ts",
+    "scripts",
+    "tests"
   ],
   "exclude": [
     "out",
     "output",
     "node_modules",
-    "src/cli.ts",
-    "src/commands",
-    "src/config.ts",
-    "src/schema.ts",
-    "src/logger.ts",
-    "scripts"
   ]
 }
