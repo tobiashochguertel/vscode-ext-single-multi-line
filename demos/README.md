@@ -18,11 +18,11 @@ demos/
 
 ## Solutions
 
-| #   | Name                                              | Approach                           | Fidelity  | Platform | Headless |
-| --- | ------------------------------------------------- | ---------------------------------- | --------- | -------- | -------- |
-| 01  | [SVG Frames](01-svg-frames/)                      | Render code as SVG, convert to GIF | Simulated | Any      | ❌       |
-| 02  | [VS Code Test Electron](02-vscode-test-electron/) | Real VS Code + `screencapture`     | Real      | macOS    | ❌       |
-| 03  | [Puppeteer](03-puppeteer/)                        | Headless Chromium HTML rendering   | High      | Any      | ✅       |
+| #      | Name                                              | Approach                           | Fidelity  | Platform | Headless |
+| ------ | ------------------------------------------------- | ---------------------------------- | --------- | -------- | -------- |
+| **01** | [SVG Frames](01-svg-frames/)                      | Render code as SVG, convert to GIF | Simulated | Any      | ❌       |
+| **02** | [VS Code Test Electron](02-vscode-test-electron/) | Real VS Code + `screencapture`     | Real      | macOS    | ❌       |
+| **03** | [Puppeteer](03-puppeteer/)                        | Headless Chromium HTML rendering   | High      | Any      | ✅       |
 
 ## Quick Start
 
