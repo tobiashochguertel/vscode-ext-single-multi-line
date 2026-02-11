@@ -4,7 +4,7 @@ version: "3"
 vars:
   EXTENSION_NAME: single-line-multi-line
   PUBLISHER: TobiasHochguertel
-  DEMO_DIR: demos/
+  DEMO_DIR: demos
   DEMO_01_DIR: "{{.DEMO_DIR}}/01-svg-frames"
   DEMO_02_DIR: "{{.DEMO_DIR}}/02-vscode-test-electron"
   DEMO_03_DIR: "{{.DEMO_DIR}}/03-puppeteer"
@@ -187,7 +187,7 @@ tasks:
 
   vscode-test:cleanup:
     desc: "Clean VS Code Test artifacts"
-    preconditions:
+    status:
       - test -d .vscode-test
     cmds:
       - rm -rf .vscode-test || true
@@ -195,15 +195,16 @@ tasks:
   demo:cleanup:
     desc: "Clean output directories, compiled files, and temporary files of a given solution"
     vars:
-      SOLUTION_DIR: "{{.SOLUTION_DIR | default ''}}"
-    preconditions:
-      - test -d {{.SOLUTION_DIR}}
+      SOLUTION_DIR: '{{.SOLUTION_DIR| default ""}}'
     cmds:
       - echo "Cleaning {{.SOLUTION_DIR}}"
       - task: vscode-test:cleanup
       - rm -rf {{.SOLUTION_DIR}}/out || true
       - rm -rf {{.SOLUTION_DIR}}/output || true
       - rm -rf {{.SOLUTION_DIR}}/scripts/find-window-id || true
+    preconditions:
+      - sh: test -d {{.SOLUTION_DIR}}
+        msg: 'Solution directory "{{.SOLUTION_DIR}}" does not exist'
 
   demo:clean:
     desc: Remove all demo output artifacts
