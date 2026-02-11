@@ -4,6 +4,11 @@ version: "3"
 vars:
   EXTENSION_NAME: single-line-multi-line
   PUBLISHER: TobiasHochguertel
+  DEMO_DIR: demos/
+  DEMO_01_DIR: "{{.DEMO_DIR}}01-svg-frames"
+  DEMO_02_DIR: "{{.DEMO_DIR}}02-vscode-test-electron"
+  DEMO_03_DIR: "{{.DEMO_DIR}}03-puppeteer"
+  DEMO_04_DIR: "{{.DEMO_DIR}}04-vscode-demo-recorder"
 
 tasks:
   default:
@@ -171,18 +176,64 @@ tasks:
   # Multiple solutions available — see demos/README.md
   #
 
+  demo:install:
+    desc: "Install dependencies for all demo solutions"
+    dir: "{{.DEMO_DIR}}"
+    preconditions:
+      # Check if `bun` is installed
+      - bun --version
+    cmds:
+      - bun install
+
+  demo:cleanup:
+    desc: "Clean output directories, compiled files, and temporary files of a given solution"
+    vars:
+      SOLUTION_DIR: "{{.SOLUTION_DIR | default ''}}"
+    preconditions:
+      - test -d {{.SOLUTION_DIR}}
+    cmds:
+      - echo "Cleaning {{.SOLUTION_DIR}}"
+      - rm -rf {{.SOLUTION_DIR}}/out || true
+      - rm -rf {{.SOLUTION_DIR}}/output || true
+
+  demo:clean:
+    desc: Remove all demo output artifacts
+    cmds:
+      - task: demo:01:clean
+      - task: demo:02:clean
+      - task: demo:03:clean
+      - task: demo:04:clean
+
+  # ── Solution 01: SVG frames ────────────────────────────────
+
+  demo:01:clean:
+    desc: "Clean output directories, compiled files, and temporary files of solution 01"
+    cmds:
+      - task: demo:cleanup
+        vars:
+          SOLUTION_DIR: "{{.DEMO_01_DIR}}"
+
+  demo:01:compile:
+    desc: "Solution 01: Compile scenario runner"
+    deps: [compile, demo:install]
+    cmds:
+      - npx tsc -p {{.DEMO_01_DIR}}/tsconfig.json
+
   demo:01:frames:
     desc: "Solution 01: Generate SVG frames"
+    deps: [demo:01:compile]
     cmds:
-      - bun demos/01-svg-frames/src/generate-frames.ts {{.CLI_ARGS | default "all"}}
+      - bun {{.DEMO_01_DIR}}/src/generate-frames.ts {{.CLI_ARGS | default "all"}}
 
   demo:01:assemble:
     desc: "Solution 01: Assemble SVG frames into GIFs"
+    deps: [demo:01:compile]
     cmds:
-      - ./demos/01-svg-frames/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+      - ./{{.DEMO_01_DIR}}/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
 
   demo:01:generate:
     desc: "Solution 01: Generate frames + assemble GIFs"
+    deps: [demo:01:compile]
     cmds:
       - task: demo:01:frames
         vars:
@@ -191,27 +242,36 @@ tasks:
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"
 
+  # ── Solution 02: vscode-test-electron (original) ──────────────
+
+  demo:02:clean:
+    desc: "Clean output directories, compiled files, and temporary files of solution 02"
+    cmds:
+      - task: demo:cleanup
+        vars:
+          SOLUTION_DIR: "{{.DEMO_02_DIR}}"
+
   demo:02:compile:
     desc: "Solution 02: Compile scenario runner + Swift helper for VS Code Electron"
-    deps: [compile]
+    deps: [compile, demo:install]
     cmds:
-      - npx tsc -p demos/02-vscode-test-electron/tsconfig.json
+      - npx tsc -p {{.DEMO_02_DIR}}/tsconfig.json
       - >-
-        test -f demos/02-vscode-test-electron/scripts/find-window-id &&
-        test demos/02-vscode-test-electron/scripts/find-window-id -nt demos/02-vscode-test-electron/scripts/find-window-id.swift ||
-        swiftc -O demos/02-vscode-test-electron/scripts/find-window-id.swift
-        -o demos/02-vscode-test-electron/scripts/find-window-id
+        test -f {{.DEMO_02_DIR}}/scripts/find-window-id &&
+        test {{.DEMO_02_DIR}}/scripts/find-window-id -nt {{.DEMO_02_DIR}}/scripts/find-window-id.swift ||
+        swiftc -O {{.DEMO_02_DIR}}/scripts/find-window-id.swift
+        -o {{.DEMO_02_DIR}}/scripts/find-window-id
 
   demo:02:record:
     desc: "Solution 02: Launch VS Code and record screenshots"
     deps: [demo:02:compile]
     cmds:
-      - bun demos/02-vscode-test-electron/src/launch.ts {{.CLI_ARGS | default "all"}}
+      - bun {{.DEMO_02_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}}
 
   demo:02:assemble:
     desc: "Solution 02: Assemble screenshots into GIFs"
     cmds:
-      - ./demos/02-vscode-test-electron/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+      - ./{{.DEMO_02_DIR}}/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
 
   demo:02:update-goldens:
     desc: "Solution 02: Run scenarios and write/update golden files"
@@ -219,10 +279,11 @@ tasks:
     env:
       UPDATE_GOLDENS: "1"
     cmds:
-      - bun demos/02-vscode-test-electron/src/launch.ts {{.CLI_ARGS | default "all"}}
+      - bun {{.DEMO_02_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}}
 
   demo:02:generate:
     desc: "Solution 02: Compile + record + assemble GIFs (verifies goldens)"
+    deps: [demo:02:compile]
     cmds:
       - task: demo:02:record
         vars:
@@ -231,18 +292,92 @@ tasks:
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"
 
+  # ── Solution 04: vscode-demo-recorder (enhanced CLI) ──────────
+
+  demo:04:clean:
+    desc: "Clean output directories, compiled files, and temporary files of solution 04"
+    cmds:
+      - task: demo:cleanup
+        vars:
+          SOLUTION_DIR: "{{.DEMO_04_DIR}}"
+
+  demo:04:compile:
+    desc: "Solution 04: Compile scenario runner + Swift helper"
+    deps: [compile, demo:install]
+    cmds:
+      - npx tsc -p {{.DEMO_04_DIR}}/tsconfig.json
+      - >-
+        test -f {{.DEMO_04_DIR}}/scripts/find-window-id &&
+        test {{.DEMO_04_DIR}}/scripts/find-window-id -nt {{.DEMO_04_DIR}}/scripts/find-window-id.swift ||
+        swiftc -O {{.DEMO_04_DIR}}/scripts/find-window-id.swift
+        -o {{.DEMO_04_DIR}}/scripts/find-window-id
+
+  demo:04:schema:
+    desc: "Solution 04: Generate JSON Schema from Zod definitions"
+    deps: [demo:04:compile]
+    cmds:
+      - bun {{.DEMO_04_DIR}}/scripts/generate-schema.ts
+
+  demo:04:record:
+    desc: "Solution 04: Launch VS Code and record screenshots (config-driven)"
+    deps: [demo:04:compile]
+    cmds:
+      - bun {{.DEMO_04_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}}
+
+  demo:04:assemble:
+    desc: "Solution 04: Assemble screenshots into GIFs (config-driven)"
+    deps: [demo:04:compile]
+    cmds:
+      - bun {{.DEMO_04_DIR}}/src/cli.ts assemble {{.CLI_ARGS | default "all"}}
+
+  demo:04:update-goldens:
+    desc: "Solution 04: Run scenarios and write/update golden files"
+    deps: [demo:04:compile]
+    cmds:
+      - bun {{.DEMO_04_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}} --update-goldens
+
+  demo:04:generate:
+    desc: "Solution 04: Clean + compile + record + assemble GIFs"
+    deps: [demo:04:compile]
+    cmds:
+      - task: demo:04:clean
+      - task: demo:04:record
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+      - task: demo:04:assemble
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+
+  # ── Solution 03: Puppeteer (original) ────────────────────────
+
+  demo:03:clean:
+    desc: "Clean output directories, compiled files, and temporary files of solution 03"
+    cmds:
+      - task: demo:cleanup
+        vars:
+          SOLUTION_DIR: "{{.DEMO_03_DIR}}"
+
+  demo:03:compile:
+    desc: "Solution 03: Compile scenario runner"
+    deps: [compile, demo:install]
+    cmds:
+      - npx tsc -p {{.DEMO_03_DIR}}/tsconfig.json
+
   demo:03:capture:
     desc: "Solution 03: Capture screenshots via Puppeteer"
+    deps: [demo:03:compile]
     cmds:
-      - bun demos/03-puppeteer/src/capture.ts {{.CLI_ARGS | default "all"}}
+      - bun {{.DEMO_03_DIR}}/src/capture.ts {{.CLI_ARGS | default "all"}}
 
   demo:03:assemble:
     desc: "Solution 03: Assemble Puppeteer screenshots into GIFs"
+    deps: [demo:03:compile]
     cmds:
-      - ./demos/03-puppeteer/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+      - ./{{.DEMO_03_DIR}}/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
 
   demo:03:generate:
     desc: "Solution 03: Capture + assemble GIFs (Puppeteer)"
+    deps: [demo:03:compile]
     cmds:
       - task: demo:03:capture
         vars:
@@ -250,8 +385,3 @@ tasks:
       - task: demo:03:assemble
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"
-
-  demo:clean:
-    desc: Remove all demo output artifacts
-    cmds:
-      - rm -rf demos/*/output demos/02-vscode-test-electron/out
