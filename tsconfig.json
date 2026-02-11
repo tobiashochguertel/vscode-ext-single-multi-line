@@ -24,5 +24,10 @@
 		".vscode-test",
 		"out",
 		"tests"
+	],
+	"references": [
+		{
+			"path": "./demos/tsconfig.json"
+		},
 	]
 }

@@ -167,28 +167,58 @@ tasks:
       - code --extensionDevelopmentPath=$(pwd)
 
   # ── Demo GIF Recording ─────────────────────────────────────
+  #
+  # Multiple solutions available — see demos/README.md
+  #
 
-  demo:frames:
-    desc: "Generate SVG frames for demo GIFs (usage: task demo:frames [-- toggle|compact|all])"
+  demo:01:frames:
+    desc: "Solution 01: Generate SVG frames"
     cmds:
-      - node demos/generate-frames.js {{.CLI_ARGS | default "all"}}
+      - bun demos/01-svg-frames/src/generate-frames.ts {{.CLI_ARGS | default "all"}}
 
-  demo:assemble:
-    desc: "Assemble SVG frames into optimized GIFs (usage: task demo:assemble [-- toggle|compact|all])"
+  demo:01:assemble:
+    desc: "Solution 01: Assemble SVG frames into GIFs"
     cmds:
-      - ./demos/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+      - ./demos/01-svg-frames/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
 
-  demo:generate:
-    desc: "Generate frames and assemble GIFs in one step"
+  demo:01:generate:
+    desc: "Solution 01: Generate frames + assemble GIFs"
     cmds:
-      - task: demo:frames
+      - task: demo:01:frames
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"
-      - task: demo:assemble
+      - task: demo:01:assemble
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+
+  demo:02:compile:
+    desc: "Solution 02: Compile scenario runner for VS Code Electron"
+    deps: [compile]
+    cmds:
+      - npx tsc -p demos/02-vscode-test-electron/tsconfig.json
+
+  demo:02:record:
+    desc: "Solution 02: Launch VS Code and record screenshots"
+    deps: [demo:02:compile]
+    cmds:
+      - bun demos/02-vscode-test-electron/src/launch.ts {{.CLI_ARGS | default "all"}}
+
+  demo:02:assemble:
+    desc: "Solution 02: Assemble screenshots into GIFs"
+    cmds:
+      - ./demos/02-vscode-test-electron/scripts/assemble-gif.sh {{.CLI_ARGS | default "all"}}
+
+  demo:02:generate:
+    desc: "Solution 02: Compile + record + assemble GIFs"
+    cmds:
+      - task: demo:02:record
+        vars:
+          CLI_ARGS: "{{.CLI_ARGS}}"
+      - task: demo:02:assemble
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"
 
   demo:clean:
-    desc: Remove demo frames and temp files
+    desc: Remove all demo output artifacts
     cmds:
-      - rm -rf demos/frames demos/.tmp-gif
+      - rm -rf demos/*/output demos/02-vscode-test-electron/out

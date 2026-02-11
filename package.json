@@ -92,9 +92,8 @@
 		"test:unit": "vitest run --config tests/vitest.config.ts",
 		"test:unit:watch": "vitest --config tests/vitest.config.ts",
 		"test": "npm run test:unit",
-		"demo:frames": "node demos/generate-frames.js",
-		"demo:assemble": "./demos/assemble-gif.sh",
-		"demo:generate": "npm run demo:frames && npm run demo:assemble"
+		"demo:01": "bun demos/01-svg-frames/src/generate-frames.ts && ./demos/01-svg-frames/scripts/assemble-gif.sh",
+		"demo:02": "npx tsc -p demos/02-vscode-test-electron/tsconfig.json && bun demos/02-vscode-test-electron/src/launch.ts && ./demos/02-vscode-test-electron/scripts/assemble-gif.sh"
 	},
 	"devDependencies": {
 		"@types/mocha": "^10.0.10",

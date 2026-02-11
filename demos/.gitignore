@@ -1,0 +1,16 @@
+# dependencies
+node_modules
+
+# solution output (frames, screenshots, temp GIF files)
+*/output/
+
+# tsc compiled output for solution 02
+02-vscode-test-electron/out/
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# Finder (MacOS)
+.DS_Store

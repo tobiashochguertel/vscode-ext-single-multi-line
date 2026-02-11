@@ -1,58 +1,70 @@
 # Demo GIF Generation
 
-Automated GIF recording for the extension's features.
+Automated GIF generation for the extension's features. Multiple solution approaches are provided so we can compare quality, fidelity, and ease of use.
+
+## Structure
+
+```structure
+demos/
+├── fixtures/                          # Shared fixture files for all solutions
+├── shared/src/                        # Shared TypeScript utilities (transformer, scenarios)
+├── 01-svg-frames/                     # Pure SVG rendering (deterministic, headless)
+├── 02-vscode-test-electron/           # Real VS Code + macOS screencapture
+├── tsconfig.json                      # Shared TypeScript config for IDE
+├── package.json                       # Shared bun dependencies
+└── README.md                          # This file
+```
+
+## Solutions
+
+| #   | Name                                              | Approach                           | Fidelity  | Platform | Headless |
+| --- | ------------------------------------------------- | ---------------------------------- | --------- | -------- | -------- |
+| 01  | [SVG Frames](01-svg-frames/)                      | Render code as SVG, convert to GIF | Simulated | Any      |          |
+| 02  | [VS Code Test Electron](02-vscode-test-electron/) | Real VS Code + `screencapture`     | Real      | macOS    |          |
+
+## Quick Start
+
+```bash
+# Install demo dependencies (from demos/ directory)
+cd demos && bun install && cd ..
+
+# Solution 01: SVG Frames (fast, headless)
+bun demos/01-svg-frames/src/generate-frames.ts
+./demos/01-svg-frames/scripts/assemble-gif.sh
+
+# Solution 02: Real VS Code screenshots (requires macOS permissions)
+npm run compile
+npx tsc -p demos/02-vscode-test-electron/tsconfig.json
+bun demos/02-vscode-test-electron/src/launch.ts
+./demos/02-vscode-test-electron/scripts/assemble-gif.sh
+
+# Or via Taskfile
+task demo:01:generate    # Solution 01
+task demo:02:generate    # Solution 02
+```
+
+## Shared Components
+
+- **`fixtures/`** — Sample code files used by all solutions
+- **`shared/src/transformer.ts`** — Extension's parser/transformer functions (extracted)
+- **`shared/src/scenarios.ts`** — Scenario definitions (before/after states, labels)
+
+## Output
+
+All solutions write final GIFs to the project's `images/` directory:
+
+- `images/demo-toggle.gif` — Toggle single/multi-line
+- `images/demo-compact.gif` — Compact blocks feature
+- `images/intro.gif` — Combined overview
 
 ## Prerequisites
 
 ```bash
-brew install ffmpeg gifsicle
-npm install  # installs @vscode/test-electron
+brew install ffmpeg gifsicle librsvg   # GIF assembly tools
+bun --version                          # Bun runtime for TypeScript scripts
 ```
 
-## How It Works
+For Solution 02 (macOS only):
 
-1. **Fixture files** in `demos/fixtures/` contain sample code for each feature
-2. **Scenario scripts** in `demos/scenarios/` run inside VS Code Extension Development Host:
-   - Open a fixture file
-   - Select text, execute extension commands
-   - Capture screenshots at each step via macOS `screencapture`
-3. **`assemble-gif.sh`** converts screenshot sequences into optimized GIFs using `ffmpeg` + `gifsicle`
-
-## Usage
-
-```bash
-# Record all demos and generate GIFs
-task demo:record
-
-# Only assemble GIFs from existing screenshots
-task demo:assemble
-
-# Record a specific feature
-task demo:record -- toggle
-
-# Clean demo artifacts
-task demo:clean
-```
-
-## Adding a New Demo
-
-1. Create a fixture file in `demos/fixtures/`
-2. Create a scenario in `demos/scenarios/` (see existing ones as templates)
-3. Register it in `demos/run-scenarios.ts`
-4. Run `task demo:record`
-
-## Output
-
-Generated GIFs are placed in `images/`:
-
-- `images/demo-toggle.gif` — Toggle single/multi-line
-- `images/demo-compact.gif` — Compact blocks feature
-- `images/intro.gif` — Combined overview (all features)
-
-## Optimization
-
-The pipeline applies:
-
-- **ffmpeg**: Palette-based GIF encoding (256 colors optimized per frame)
-- **gifsicle**: Frame optimization (`-O3`), lossy compression (`--lossy=80`), color reduction
-- Typical result: **200-500KB** vs the original 3MB intro.gif
+- System Settings → Privacy & Security → **Screen Recording** → add VS Code / Windsurf / Terminal
+- System Settings → Privacy & Security → **Accessibility** → add VS Code / Windsurf / Terminal

@@ -1,0 +1,13 @@
+{
+  "name": "demos",
+  "private": true,
+  "description": "Demo GIF generation solutions for the extension",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.4.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

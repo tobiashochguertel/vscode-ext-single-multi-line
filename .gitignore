@@ -4,5 +4,5 @@ node_modules/
 *.vsix
 .DS_Store
 .eslintcache
-demos/frames/
-demos/.tmp-gif/
+demos/*/output/
+demos/02-vscode-test-electron/out/
