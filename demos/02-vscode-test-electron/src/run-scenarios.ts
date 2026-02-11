@@ -83,11 +83,15 @@ function findVSCodeWindowId(): string | null {
  *
  * Uses `-l <windowID>` to capture only the VS Code window.
  * Falls back to full-screen capture if the window ID cannot be determined.
+ * Dismisses any notifications before capturing for clean screenshots.
  *
  * NOTE: Requires the calling application (VS Code / Windsurf / Terminal)
  * to be added to macOS System Settings → Privacy & Security → Screen Recording.
  */
-function captureScreenshot(label: string): string {
+async function captureScreenshot(label: string): Promise<string> {
+  // Dismiss any notifications that may have appeared
+  await vscode.commands.executeCommand("notifications.clearAll");
+  await sleep(200);
   const scenarioDir = path.join(SCREENSHOT_DIR, currentScenario);
   ensureDir(scenarioDir);
 
@@ -195,25 +199,25 @@ async function scenarioToggle(): Promise<void> {
   const editor = await openFixture("toggle-multiline.json");
   await sleep(500);
   verifyGolden(editor, "01-single-line-before");
-  captureScreenshot("01-single-line-before");
+  await captureScreenshot("01-single-line-before");
 
   selectAll(editor);
   await sleep(500);
-  captureScreenshot("02-selected");
+  await captureScreenshot("02-selected");
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   verifyGolden(editor, "03-multi-line-after");
-  captureScreenshot("03-multi-line-after");
+  await captureScreenshot("03-multi-line-after");
 
   selectAll(editor);
   await sleep(500);
-  captureScreenshot("04-selected-again");
+  await captureScreenshot("04-selected-again");
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   verifyGolden(editor, "05-single-line-restored");
-  captureScreenshot("05-single-line-restored");
+  await captureScreenshot("05-single-line-restored");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   console.log("✓ Scenario toggle complete");
@@ -227,16 +231,16 @@ async function scenarioCompactBlocks(): Promise<void> {
   const editor = await openFixture("compact-blocks.json");
   await sleep(500);
   verifyGolden(editor, "01-multiline-blocks");
-  captureScreenshot("01-multiline-blocks");
+  await captureScreenshot("01-multiline-blocks");
 
   selectAll(editor);
   await sleep(500);
-  captureScreenshot("02-selected");
+  await captureScreenshot("02-selected");
 
   await vscode.commands.executeCommand("extension.compactBlocks");
   await sleep(1000);
   verifyGolden(editor, "03-compacted");
-  captureScreenshot("03-compacted");
+  await captureScreenshot("03-compacted");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   console.log("✓ Scenario compact-blocks complete");
@@ -250,16 +254,16 @@ async function scenarioToggleFromMulti(): Promise<void> {
   const editor = await openFixture("toggle-singleline.json");
   await sleep(500);
   verifyGolden(editor, "01-multi-line-before");
-  captureScreenshot("01-multi-line-before");
+  await captureScreenshot("01-multi-line-before");
 
   selectAll(editor);
   await sleep(500);
-  captureScreenshot("02-selected");
+  await captureScreenshot("02-selected");
 
   await vscode.commands.executeCommand("extension.singleMultiLine", { isCommaOnNewLine: false });
   await sleep(1000);
   verifyGolden(editor, "03-single-line-after");
-  captureScreenshot("03-single-line-after");
+  await captureScreenshot("03-single-line-after");
 
   await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
   console.log("✓ Scenario toggle-from-multi-line complete");
@@ -276,6 +280,16 @@ export async function run(): Promise<void> {
 
   // Wait for extension to activate
   await sleep(2000);
+
+  // Suppress distracting UI elements for clean screenshots
+  const config = vscode.workspace.getConfiguration();
+  await config.update("git.autoRepositoryDetection", false, vscode.ConfigurationTarget.Global);
+  await config.update("git.enabled", false, vscode.ConfigurationTarget.Global);
+  await config.update("chat.commandCenter.enabled", false, vscode.ConfigurationTarget.Global);
+
+  // Dismiss any existing notifications
+  await vscode.commands.executeCommand("notifications.clearAll");
+  await sleep(500);
 
   // Increase font size for better GIF readability
   for (let i = 0; i < 3; i++) {

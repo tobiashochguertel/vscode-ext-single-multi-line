@@ -60,6 +60,35 @@ async function main(): Promise<void> {
     "--disable-workspace-trust",
   ];
 
+  // Wipe user-data to ensure fresh VS Code state (no cached notifications)
+  const userDataArg = args.find((a) => a.startsWith("--user-data-dir="));
+  if (userDataArg) {
+    const userDataDir = userDataArg.split("=")[1];
+    if (fs.existsSync(userDataDir)) {
+      fs.rmSync(userDataDir, { recursive: true, force: true });
+    }
+
+    // Pre-seed VS Code settings to suppress distracting UI before launch
+    const settingsDir = path.join(userDataDir, "User");
+    const settingsPath = path.join(settingsDir, "settings.json");
+    fs.mkdirSync(settingsDir, { recursive: true });
+
+    const settings = {
+      "git.enabled": false,
+      "git.autoRepositoryDetection": false,
+      "git.openRepositoryInParentFolders": "never",
+      "chat.commandCenter.enabled": false,
+      "workbench.startupEditor": "none",
+      "workbench.tips.enabled": false,
+      "update.showReleaseNotes": false,
+      "extensions.ignoreRecommendations": true,
+      "telemetry.telemetryLevel": "off",
+    };
+
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf-8");
+    console.log(`Settings: ${settingsPath}`);
+  }
+
   console.log(`CLI: ${cliPath}`);
   console.log(`Args: ${args.join(" ")}`);
   console.log("");

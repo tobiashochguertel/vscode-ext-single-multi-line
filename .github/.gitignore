@@ -1,0 +1,6 @@
+# Ignore sensitive agents configuration
+
+**/mcp-server-task-configs
+**/mcp-server-task-configs/
+**/mcp-switcher
+**/mcp-switcher/
