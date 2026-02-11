@@ -5,10 +5,10 @@ vars:
   EXTENSION_NAME: single-line-multi-line
   PUBLISHER: TobiasHochguertel
   DEMO_DIR: demos/
-  DEMO_01_DIR: "{{.DEMO_DIR}}01-svg-frames"
-  DEMO_02_DIR: "{{.DEMO_DIR}}02-vscode-test-electron"
-  DEMO_03_DIR: "{{.DEMO_DIR}}03-puppeteer"
-  DEMO_04_DIR: "{{.DEMO_DIR}}04-vscode-demo-recorder"
+  DEMO_01_DIR: "{{.DEMO_DIR}}/01-svg-frames"
+  DEMO_02_DIR: "{{.DEMO_DIR}}/02-vscode-test-electron"
+  DEMO_03_DIR: "{{.DEMO_DIR}}/03-puppeteer"
+  DEMO_04_DIR: "{{.DEMO_DIR}}/04-vscode-demo-recorder"
 
 tasks:
   default:
