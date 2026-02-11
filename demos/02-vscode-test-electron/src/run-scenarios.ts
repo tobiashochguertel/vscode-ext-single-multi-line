@@ -282,10 +282,20 @@ export async function run(): Promise<void> {
   await sleep(2000);
 
   // Suppress distracting UI elements for clean screenshots
+  // Wrapped in try/catch: some settings may not exist in all VS Code versions
+  // (e.g. chat.commandCenter.enabled is absent in 1.109.2 and throws CodeExpectedError)
   const config = vscode.workspace.getConfiguration();
-  await config.update("git.autoRepositoryDetection", false, vscode.ConfigurationTarget.Global);
-  await config.update("git.enabled", false, vscode.ConfigurationTarget.Global);
-  await config.update("chat.commandCenter.enabled", false, vscode.ConfigurationTarget.Global);
+  for (const [key, value] of Object.entries({
+    "git.autoRepositoryDetection": false,
+    "git.enabled": false,
+    "chat.commandCenter.enabled": false,
+  })) {
+    try {
+      await config.update(key, value, vscode.ConfigurationTarget.Global);
+    } catch {
+      // Setting not registered in this VS Code version — skip silently
+    }
+  }
 
   // Dismiss any existing notifications
   await vscode.commands.executeCommand("notifications.clearAll");

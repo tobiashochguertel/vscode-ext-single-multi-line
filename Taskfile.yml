@@ -309,6 +309,15 @@ tasks:
 
   # ── Solution 04: vscode-demo-recorder (enhanced CLI) ──────────
 
+  demo:04:install:
+    desc: "Install dependencies for solution 04"
+    dir: "{{.DEMO_04_DIR}}"
+    preconditions:
+      # Check if `bun` is installed
+      - bun --version
+    cmds:
+      - bun install
+
   demo:04:clean:
     desc: "Clean output directories, compiled files, and temporary files of solution 04"
     cmds:
@@ -318,7 +327,7 @@ tasks:
 
   demo:04:compile:
     desc: "Solution 04: Compile scenario runner + Swift helper"
-    deps: [compile, demo:install]
+    deps: [compile, demo:install, demo:04:install]
     cmds:
       - npx tsc -p {{.DEMO_04_DIR}}/tsconfig.json
       - >-
@@ -350,10 +359,9 @@ tasks:
       - bun {{.DEMO_04_DIR}}/src/launch.ts {{.CLI_ARGS | default "all"}} --update-goldens
 
   demo:04:generate:
-    desc: "Solution 04: Clean + compile + record + assemble GIFs"
+    desc: "Solution 04: Compile + record + assemble GIFs"
     deps: [demo:04:compile]
     cmds:
-      - task: demo:04:clean
       - task: demo:04:record
         vars:
           CLI_ARGS: "{{.CLI_ARGS}}"

@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=./demos/04-vscode-demo-recorder/schemas/vscode-demo-recorder.cli.schema.json
+# vscode-demo-recorder configuration
+# See: vscode-demo-recorder schema show cli
+
+version: "1.0"
+
+paths:
+  extensionRoot: "."
+  fixturesDir: "demos/fixtures"
+  outputDir: "demos/04-vscode-demo-recorder/output"
+  goldensDir: "demos/04-vscode-demo-recorder/goldens"
+  gifOutputDir: "images"
+
+vscode:
+  fontZoomLevel: 3
+  wipeUserData: true
+  cliFlags:
+    - "--wait"
+    - "--disable-gpu"
+    - "--skip-welcome"
+    - "--skip-release-notes"
+    - "--disable-workspace-trust"
+  settings:
+    git.enabled: false
+    git.autoRepositoryDetection: false
+    git.openRepositoryInParentFolders: "never"
+    chat.commandCenter.enabled: false
+    workbench.startupEditor: "none"
+    workbench.tips.enabled: false
+    update.showReleaseNotes: false
+    extensions.ignoreRecommendations: true
+    telemetry.telemetryLevel: "off"
+
+gif:
+  fps: 1
+  delay: 100
+  optimizationLevel: 3
+
+scenarios:
+  - name: toggle
+    description: "Toggle between single-line and multi-line JSON"
+    steps:
+      - action: open
+        fixture: "toggle-multiline.json"
+      - action: sleep
+        ms: 500
+      - action: verify
+        golden: "01-single-line-before"
+      - action: screenshot
+        label: "01-single-line-before"
+      - action: selectAll
+      - action: sleep
+        ms: 500
+      - action: screenshot
+        label: "02-selected"
+      - action: command
+        command: "extension.singleMultiLine"
+        args:
+          isCommaOnNewLine: false
+      - action: sleep
+        ms: 1000
+      - action: verify
+        golden: "03-multi-line-after"
+      - action: screenshot
+        label: "03-multi-line-after"
+      - action: selectAll
+      - action: sleep
+        ms: 500
+      - action: screenshot
+        label: "04-selected-again"
+      - action: command
+        command: "extension.singleMultiLine"
+        args:
+          isCommaOnNewLine: false
+      - action: sleep
+        ms: 1000
+      - action: verify
+        golden: "05-single-line-restored"
+      - action: screenshot
+        label: "05-single-line-restored"
+      - action: closeEditor
+
+  - name: compact
+    description: "Compact multi-line JSON blocks into single lines"
+    steps:
+      - action: open
+        fixture: "compact-blocks.json"
+      - action: sleep
+        ms: 500
+      - action: verify
+        golden: "01-multiline-blocks"
+      - action: screenshot
+        label: "01-multiline-blocks"
+      - action: selectAll
+      - action: sleep
+        ms: 500
+      - action: screenshot
+        label: "02-selected"
+      - action: command
+        command: "extension.compactBlocks"
+      - action: sleep
+        ms: 1000
+      - action: verify
+        golden: "03-compacted"
+      - action: screenshot
+        label: "03-compacted"
+      - action: closeEditor
+
+  - name: toggle-from-multi
+    description: "Toggle from multi-line to single-line JSON"
+    steps:
+      - action: open
+        fixture: "toggle-singleline.json"
+      - action: sleep
+        ms: 500
+      - action: verify
+        golden: "01-multi-line-before"
+      - action: screenshot
+        label: "01-multi-line-before"
+      - action: selectAll
+      - action: sleep
+        ms: 500
+      - action: screenshot
+        label: "02-selected"
+      - action: command
+        command: "extension.singleMultiLine"
+        args:
+          isCommaOnNewLine: false
+      - action: sleep
+        ms: 1000
+      - action: verify
+        golden: "03-single-line-after"
+      - action: screenshot
+        label: "03-single-line-after"
+      - action: closeEditor
